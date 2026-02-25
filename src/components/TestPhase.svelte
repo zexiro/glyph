@@ -40,7 +40,7 @@
         sequenceOrder = []
         sequenceShowTimeout = setTimeout(() => {
           sequenceShowing = false
-        }, 2500)
+        }, 4000)
       }
     }
     return () => {

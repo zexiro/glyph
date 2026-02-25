@@ -15,28 +15,35 @@ export function generateChallenges(config, currentGlyphs, newGlyphs, meanings, w
   const challengeCount = testType === 'sequence' ? 3 : Math.min(4, Math.max(3, currentGlyphs.length))
 
   const generators = {
-    recall: () => generateRecall(currentGlyphs, newGlyphs, meanings, optionCount, rng),
-    reverse: () => generateReverse(currentGlyphs, newGlyphs, meanings, optionCount, rng),
+    recall: (used) => generateRecall(currentGlyphs, newGlyphs, meanings, optionCount, rng, used),
+    reverse: (used) => generateReverse(currentGlyphs, newGlyphs, meanings, optionCount, rng, used),
     sequence: () => generateSequence(currentGlyphs, rng),
-    inference: () => generateInference(currentGlyphs, meanings, writingSystem, optionCount, rng),
-    mixed: () => generateMixed(currentGlyphs, newGlyphs, meanings, writingSystem, optionCount, rng),
+    inference: (used) => generateInference(currentGlyphs, meanings, writingSystem, optionCount, rng, used),
+    mixed: (used) => generateMixed(currentGlyphs, newGlyphs, meanings, writingSystem, optionCount, rng, used),
   }
 
   const generate = generators[testType] || generators.recall
   const challenges = []
+  const usedGlyphIds = new Set()
 
   for (let i = 0; i < challengeCount; i++) {
-    const challenge = generate()
-    if (challenge) challenges.push(challenge)
+    const challenge = generate(usedGlyphIds)
+    if (challenge) {
+      challenges.push(challenge)
+      // Track which glyph was tested to avoid repeats
+      if (challenge.glyphId != null) usedGlyphIds.add(challenge.glyphId)
+      if (challenge.correctGlyphId != null) usedGlyphIds.add(challenge.correctGlyphId)
+    }
   }
 
   return challenges
 }
 
-function generateRecall(currentGlyphs, newGlyphs, meanings, optionCount, rng) {
+function generateRecall(currentGlyphs, newGlyphs, meanings, optionCount, rng, usedGlyphIds = new Set()) {
   // Prefer testing new glyphs but also revisit old ones
   const pool = newGlyphs.length > 0 ? [...newGlyphs, ...rng.shuffle(currentGlyphs).slice(0, 1)] : currentGlyphs
-  const target = rng.pick(pool)
+  const unused = pool.filter(g => !usedGlyphIds.has(g.id))
+  const target = rng.pick(unused.length > 0 ? unused : pool)
   const correctMeaning = meanings.get(target.id)
   const options = buildMeaningOptions(target.id, currentGlyphs, meanings, optionCount, rng)
 
@@ -48,9 +55,10 @@ function generateRecall(currentGlyphs, newGlyphs, meanings, optionCount, rng) {
   }
 }
 
-function generateReverse(currentGlyphs, newGlyphs, meanings, optionCount, rng) {
+function generateReverse(currentGlyphs, newGlyphs, meanings, optionCount, rng, usedGlyphIds = new Set()) {
   const pool = newGlyphs.length > 0 ? [...newGlyphs, ...rng.shuffle(currentGlyphs).slice(0, 1)] : currentGlyphs
-  const target = rng.pick(pool)
+  const unused = pool.filter(g => !usedGlyphIds.has(g.id))
+  const target = rng.pick(unused.length > 0 ? unused : pool)
   const meaning = meanings.get(target.id)
   const options = buildGlyphOptions(target.id, currentGlyphs, optionCount, rng)
 
@@ -74,7 +82,7 @@ function generateSequence(currentGlyphs, rng) {
   }
 }
 
-function generateInference(currentGlyphs, meanings, writingSystem, optionCount, rng) {
+function generateInference(currentGlyphs, meanings, writingSystem, optionCount, rng, usedGlyphIds = new Set()) {
   // Find a glyph from the writing system that hasn't been revealed yet
   const currentIds = new Set(currentGlyphs.map(g => g.id))
   const unseenGlyphs = writingSystem.glyphs.filter(g => !currentIds.has(g.id))
@@ -141,17 +149,17 @@ function generateInference(currentGlyphs, meanings, writingSystem, optionCount, 
   }
 }
 
-function generateMixed(currentGlyphs, newGlyphs, meanings, writingSystem, optionCount, rng) {
+function generateMixed(currentGlyphs, newGlyphs, meanings, writingSystem, optionCount, rng, usedGlyphIds = new Set()) {
   const types = ['recall', 'reverse', 'inference']
   const chosen = rng.pick(types)
 
   switch (chosen) {
     case 'recall':
-      return generateRecall(currentGlyphs, newGlyphs, meanings, optionCount, rng)
+      return generateRecall(currentGlyphs, newGlyphs, meanings, optionCount, rng, usedGlyphIds)
     case 'reverse':
-      return generateReverse(currentGlyphs, newGlyphs, meanings, optionCount, rng)
+      return generateReverse(currentGlyphs, newGlyphs, meanings, optionCount, rng, usedGlyphIds)
     case 'inference':
-      return generateInference(currentGlyphs, meanings, writingSystem, optionCount, rng)
+      return generateInference(currentGlyphs, meanings, writingSystem, optionCount, rng, usedGlyphIds)
   }
 }
 
