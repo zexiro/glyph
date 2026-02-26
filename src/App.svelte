@@ -18,6 +18,9 @@
   {:else if phase === 'results'}
     <ResultsScreen />
   {/if}
+  <footer class="codehawks-footer">
+    A <a href="https://www.codehawks.co.uk" target="_blank" rel="noopener noreferrer">CodeHawks</a> project
+  </footer>
 </main>
 
 <style>
@@ -28,5 +31,19 @@
     align-items: center;
     justify-content: center;
     padding: 1rem;
+  }
+  .codehawks-footer {
+    position: fixed;
+    bottom: 0.5rem;
+    right: 0.75rem;
+    font-size: 0.65rem;
+    color: var(--text-dim);
+  }
+  .codehawks-footer a {
+    color: var(--text-dim);
+    text-decoration: none;
+  }
+  .codehawks-footer a:hover {
+    color: var(--text);
   }
 </style>
