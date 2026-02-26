@@ -2,6 +2,7 @@
   import { startGame } from '../lib/game/engine.js'
   import { preferences } from '../lib/stores/preferences.svelte.js'
   import { getAudioEngine } from '../lib/audio/AudioEngine.js'
+  import { gameState } from '../lib/stores/game.svelte.js'
 
   let seedInput = $state('')
 
@@ -45,6 +46,8 @@
   </div>
 
   <p class="flavor">Each session generates a unique writing system with internal logic.<br/>Can you learn to read it?</p>
+
+  <button class="about-link" onclick={() => gameState.phase = 'about'}>About Glyph</button>
 </div>
 
 <style>
@@ -143,5 +146,18 @@
     color: var(--text-dim);
     line-height: 1.5;
     opacity: 0.6;
+  }
+
+  .about-link {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    transition: color var(--transition);
+  }
+  .about-link:hover {
+    color: var(--text);
   }
 </style>

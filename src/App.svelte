@@ -4,6 +4,7 @@
   import LearnPhase from './components/LearnPhase.svelte'
   import TestPhase from './components/TestPhase.svelte'
   import ResultsScreen from './components/ResultsScreen.svelte'
+  import AboutPage from './components/AboutPage.svelte'
 
   const phase = $derived(gameState.phase)
 </script>
@@ -17,6 +18,8 @@
     <TestPhase />
   {:else if phase === 'results'}
     <ResultsScreen />
+  {:else if phase === 'about'}
+    <AboutPage />
   {/if}
   <footer class="codehawks-footer">
     A <a href="https://www.codehawks.co.uk" target="_blank" rel="noopener noreferrer">CodeHawks</a> project
